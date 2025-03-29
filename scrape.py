@@ -9,17 +9,18 @@ titles = []
 locations = []
 prices = []
 
-url_pages = [x for x in range(2, 135)]
+base_url = 'https://www.buyrentkenya.com/houses-for-sale'
+url_pages = [base_url]
+
+url_pages.extend([f'{base_url}?page={x}' for x in range(2, 135)]) # This extends the url_pages list to have the list of the pages from 2 to 111.
+
+headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+}
 
 for x in url_pages:
-    url = f'https://www.buyrentkenya.com/houses-for-sale?page={x}'
-
-    headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-    }
-
     try: 
-        response = requests.get(url, headers=headers)
+        response = requests.get(x, headers=headers)
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -42,21 +43,22 @@ for x in url_pages:
         found_prices = re.findall(r'KSh\s[\d,]+', all_text)
         prices.extend([price.replace("KSh", "").strip() for price in found_prices])
        # print(found_prices)
-
-        time.sleep(response.elapsed.total_seconds()) # Make another request after the time spend to make the last request. 
+        time.sleep(response.elapsed.total_seconds()) # Make another request after the time spent to make the last request. 
     except Exception as e:
         print(f'Error: {str(e)}')
 
+properties.append({
+    'titles': titles,
+    "locations": locations,
+    "prices": prices
+})
+
 print(f'{len(titles)} titles scrapped successfully!')
 
-#title_text = [i.text.strip() if i else "No Title" for i in title]
+with open('data.json', 'w') as f:
+    json.dump(properties, f, indent=4)
 
-#location = soup.find_all('p', class_='ml-1 truncate text-sm font-normal capitalize text-grey-650')
-#location_text = [x.text.strip() if x else 'No Location' for x in location]
-# print(location_text)
 
-#price = soup.find_all('a', class_='no-underline')
-#price_text = [i.text.strip() for i in price if re.match(r'KSh \d{1,3}(?:,\d{3})*(?:\.\d+)?|Price not communicated', i.text.strip())]
 
 
 
